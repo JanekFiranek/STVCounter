@@ -54,8 +54,8 @@ public class VoteCounter {
     int maxVotes = hopefuls.stream().mapToInt(voteCount::get).max().getAsInt();
     System.out.println("Najwieksza liczba glosow - " + maxVotes);
     List<String> leaders = hopefuls.stream().filter(n -> voteCount.get(n) == maxVotes).collect(Collectors.toList());
-    for(int i = 0; i < leaders.size(); i++) {
-      System.out.println(String.format("Potencjalny elekt %s ma %d głosów i wynik borda %d",leaders.get(i), maxVotes, bordaComparator.calculateBordaScore(leaders.get(i),hopefuls)));
+    for (int i = 0; i < leaders.size(); i++) {
+      System.out.println(String.format("Potencjalny elekt %s ma %d głosów i wynik borda %d", leaders.get(i), maxVotes, bordaComparator.calculateBordaScore(leaders.get(i), hopefuls)));
     }
     leaders.sort(bordaComparator);
     return leaders.get(0);
@@ -66,8 +66,8 @@ public class VoteCounter {
     int minVotes = hopefuls.stream().mapToInt(voteCount::get).min().getAsInt();
     System.out.println("Najmniejsza liczba glosow - " + minVotes);
     List<String> leaders = hopefuls.stream().filter(n -> voteCount.get(n) == minVotes).collect(Collectors.toList());
-    for(int i = 0; i < leaders.size(); i++) {
-      System.out.println(String.format("Potetncjalny eliminowany %s ma %d głosów i wynik borda %d",leaders.get(i), minVotes, bordaComparator.calculateBordaScore(leaders.get(i), hopefuls)));
+    for (int i = 0; i < leaders.size(); i++) {
+      System.out.println(String.format("Potetncjalny eliminowany %s ma %d głosów i wynik borda %d", leaders.get(i), minVotes, bordaComparator.calculateBordaScore(leaders.get(i), hopefuls)));
     }
     leaders.sort(bordaComparator.reversed());
     return leaders.get(0);
@@ -100,47 +100,47 @@ public class VoteCounter {
     }
 
 
-      hopefuls.addAll(candidates);
+    hopefuls.addAll(candidates);
 
-      for(String candidate : candidates) {
-        System.out.println(String.format("START: %s - %d",candidate,voteCount.get(candidate)));
+    for (String candidate : candidates) {
+      System.out.println(String.format("START: %s - %d", candidate, voteCount.get(candidate)));
 
-      }
+    }
 
-      int currentRound = 1;
-      while (elected.size() < seatsToFill && hopefuls.size() > 0) {
-        System.out.println("===Runda " + currentRound + "===");
-        VoteComparator voteComparator = new VoteComparator(voteCount);
+    int currentRound = 1;
+    while (elected.size() < seatsToFill && hopefuls.size() > 0) {
+      System.out.println("===Runda " + currentRound + "===");
+      VoteComparator voteComparator = new VoteComparator(voteCount);
 
-        List<String> sortedHopefuls = new ArrayList<>(hopefuls);
-        sortedHopefuls.sort(voteComparator);
-        int surplus = voteCount.get(sortedHopefuls.get(0)) - droopQuote;
+      List<String> sortedHopefuls = new ArrayList<>(hopefuls);
+      sortedHopefuls.sort(voteComparator);
+      int surplus = voteCount.get(sortedHopefuls.get(0)) - droopQuote;
 
-        if (surplus >= 0 || hopefuls.size() <= (seatsToFill - elected.size())) {
-          String electName = this.selectFirst(sortedHopefuls, ballots, voteCount);
-          this.elect(electName, currentRound, elected, voteCount);
-          hopefuls.remove(electName);
+      if (surplus >= 0 || hopefuls.size() <= (seatsToFill - elected.size())) {
+        String electName = this.selectFirst(sortedHopefuls, ballots, voteCount);
+        this.elect(electName, currentRound, elected, voteCount);
+        hopefuls.remove(electName);
 
-          if (surplus > 0) {
-            double weight = ((double) surplus / voteCount.get(electName));
-            this.redistributeBallots(electName, weight, hopefuls, allocated, voteCount);
-          }
-        } else {
-          String eliminatedName = this.selectLast(sortedHopefuls, ballots, voteCount);
-          hopefuls.remove(eliminatedName);
-          eliminated.add(eliminatedName);
-          System.out.println(String.format("W %d rundzie odpada %s", currentRound, eliminatedName));
-          this.redistributeBallots(eliminatedName, 1.0, hopefuls, allocated, voteCount);
+        if (surplus > 0) {
+          double weight = ((double) surplus / voteCount.get(electName));
+          this.redistributeBallots(electName, weight, hopefuls, allocated, voteCount);
         }
-        currentRound++;
+      } else {
+        String eliminatedName = this.selectLast(sortedHopefuls, ballots, voteCount);
+        hopefuls.remove(eliminatedName);
+        eliminated.add(eliminatedName);
+        System.out.println(String.format("W %d rundzie odpada %s", currentRound, eliminatedName));
+        this.redistributeBallots(eliminatedName, 1.0, hopefuls, allocated, voteCount);
       }
+      currentRound++;
+    }
 
-      while ((seatsToFill - elected.size()) > 0 && eliminated.size() > 0) {
-        System.out.println("===Runda " + currentRound + "===");
-        String electedName = eliminated.remove(0);
-        this.elect(electedName, currentRound, elected, voteCount);
-        currentRound++;
-      }
+    while ((seatsToFill - elected.size()) > 0 && eliminated.size() > 0) {
+      System.out.println("===Runda " + currentRound + "===");
+      String electedName = eliminated.remove(0);
+      this.elect(electedName, currentRound, elected, voteCount);
+      currentRound++;
+    }
     return elected;
   }
 }

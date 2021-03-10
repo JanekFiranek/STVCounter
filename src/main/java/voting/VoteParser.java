@@ -41,7 +41,7 @@ public class VoteParser {
       }
       List<String> choicesList = new ArrayList<>(Arrays.asList(choices));
       choicesList.removeIf(Objects::isNull);
-      for(String excludedCandidate : excludedCandidates) {
+      for (String excludedCandidate : excludedCandidates) {
         choicesList.removeIf(n -> n.equals(excludedCandidate));
       }
       if (choicesList.size() > 0) {
