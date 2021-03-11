@@ -1,9 +1,12 @@
 import data.Ballot;
 import data.Elect;
+import gui.GUIManager;
+import gui.STVGui;
 import voting.VoteCounter;
 import voting.VoteParser;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -11,32 +14,34 @@ import java.util.Scanner;
 
 public class Main {
   public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
-    System.out.print("Podaj sciezke do pliku .csv z wynikami: ");
-    String path = scanner.nextLine();
-    System.out.print("Podaj liczbe miejsc do obsadzenia: ");
-    int seatsToFill = Integer.valueOf(scanner.nextLine());
-    System.out.print("Podaj maksymalną liczbe wyborów: ");
-    int maxChoices = Integer.valueOf(scanner.nextLine());
-    System.out.println("Podaj ewentualnych wykluczonych kandydatów, po przecinku i spacji: ");
-    String excludedArg = scanner.nextLine();
+    GUIManager gui = new GUIManager();
+    gui.initialize();
+    gui.println("Podaj sciezke do pliku .csv z wynikami: ");
+    String path = gui.getInput();
+    gui.println("Podaj liczbe miejsc do obsadzenia: ");
+    int seatsToFill = Integer.valueOf(gui.getInput());
+    gui.println("Podaj maksymalną liczbe wyborów: ");
+    int maxChoices = Integer.valueOf(gui.getInput());
+    gui.println("Podaj ewentualnych wykluczonych kandydatów, po przecinku i spacji: ");
+    String excludedArg = gui.getInput();
     String[] excludedCandidates = excludedArg.split(", ");
-    System.out.print("Zapisz logi pod ścieżką: ");
-    String savePath = scanner.nextLine();
+    gui.println("Zapisz logi pod ścieżką: ");
+    String savePath = gui.getInput();
     try {
-      System.setOut(new PrintStream(Files.newOutputStream(Paths.get(savePath.strip()))));
+      System.setOut(new PrintStream(new FileOutputStream(Paths.get(savePath.strip()).toFile())));
     } catch (IOException e) {
       System.out.println("Nieprawidlowa sciezka zapisu!");
     }
 
     try {
-      Reader file = new InputStreamReader(Files.newInputStream(Paths.get(path.strip())));
+      Reader file = new InputStreamReader(new FileInputStream(Paths.get(path.strip()).toFile()));
       VoteParser parser = new VoteParser(file, maxChoices, excludedCandidates);
       List<Ballot> ballots = parser.parseResults();
       VoteCounter counter = new VoteCounter();
       List<Elect> elect = counter.calculateSTV(ballots, seatsToFill);
-      System.out.println("===Koniec===");
-      elect.forEach(System.out::println);
+      gui.println("Wyniki wyborów: ");
+      elect.forEach(gui::println);
+      gui.println("Logi zapisano do pliku");
 
     } catch (FileNotFoundException e) {
       System.out.println("Nieprawidlowa sciezka odczytu!");
