@@ -5,17 +5,14 @@ import data.Ballot;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class VoteParser {
 
-  private static final Pattern VOTE_PATTERN = Pattern.compile("Wybór (\\d)");
+  private static final Pattern VOTE_PATTERN = Pattern.compile("(\\d) Wybór");
   private final Reader csvReader;
   private final int maxChoices;
   private final String[] excludedCandidates;
@@ -26,11 +23,17 @@ public class VoteParser {
     this.excludedCandidates = excludedCandidates;
   }
 
-  public List<Ballot> parseResults() throws IOException {
+  /*public List<Ballot> parseResults() throws IOException {
     CSVReader csvParser = new CSVReader(this.csvReader);
     String[] firstLine = csvParser.readNext();
     List<Ballot> ballots = new ArrayList<>();
-    final List<String> candidates = Arrays.stream(Arrays.copyOfRange(firstLine, 2, firstLine.length)).map(n -> n.substring(2, n.length() - 1)).collect(Collectors.toList());
+    final List<String> candidates = Arrays.stream(Arrays.copyOfRange(firstLine, 2, firstLine.length)).map(n -> n.substring(52, n.length() - 1)).collect(Collectors.toList());
+    Set<String> candidatesSet = new HashSet<>(candidates);
+    for(String candidate : candidatesSet) {
+      if(Collections.frequency(candidates, candidate) > 1) {
+        System.out.println("Uwaga! " + candidate + " występuje więcej niż raz w pliku.");
+      }
+    }
     for (String[] line : csvParser) {
       String[] choices = new String[this.maxChoices];
       for (int i = 1; i < line.length; i++) {
@@ -42,9 +45,33 @@ public class VoteParser {
       List<String> choicesList = new ArrayList<>(Arrays.asList(choices));
       choicesList.removeIf(Objects::isNull);
       for (String excludedCandidate : excludedCandidates) {
-        choicesList.removeIf(n -> n.equals(excludedCandidate));
+        choicesList.removeIf(n -> {
+          boolean toBeRemoved = n.equals(excludedCandidate);
+          if(toBeRemoved) {
+            System.out.println("Wyrzucam " + excludedCandidate);
+          }
+          return toBeRemoved;
+        });
       }
       if (choicesList.size() > 0) {
+        ballots.add(new Ballot(choicesList));
+      }
+    }
+    return ballots;
+  }
+  */
+
+  //Szybki fix na wybory na kanclerza bo spierdoliłem format znowu xD
+  public List<Ballot> parseResults() throws IOException {
+    CSVReader csvParser = new CSVReader(this.csvReader);
+    String[] firstLine = csvParser.readNext();
+    List<Ballot> ballots = new ArrayList<>();
+    for(String[] line : csvParser) {
+      List<String> choicesList = new ArrayList<>();
+      choicesList.add(line[2]);
+      choicesList.add(line[3]);
+      choicesList.removeIf(n -> n.length() == 0);
+      if(choicesList.size() > 0) {
         ballots.add(new Ballot(choicesList));
       }
     }
